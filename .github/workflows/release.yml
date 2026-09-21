@@ -28,10 +28,15 @@ jobs:
             exit 1
           fi
 
+      # --mode normalises the permission bits. Without it the asset depends on
+      # the builder's umask -- a 0640 checkout and a 0644 one produce different
+      # checksums from identical content, which makes the checksum in a port's
+      # conformance.lock impossible to reproduce locally.
       - name: build the asset
         run: |
           tar --create --gzip --file cases.tar.gz \
-            --sort=name --owner=0 --group=0 --numeric-owner --mtime='UTC 2020-01-01' \
+            --sort=name --owner=0 --group=0 --numeric-owner \
+            --mode='u=rwX,go=rX' --mtime='UTC 2020-01-01' \
             cases schema SPEC.md VERSION
           sha256sum cases.tar.gz > cases.tar.gz.sha256
           cat cases.tar.gz.sha256

@@ -65,6 +65,21 @@ The checksum is mandatory. A tag can be moved; without a checksum that would
 change a port's tests silently. A suite bump is then a one-line diff that a
 reviewer sees.
 
+The asset is built reproducibly, so the checksum can be confirmed from the tag
+rather than taken on trust:
+
+```sh
+git clone --branch v1.0.0 --depth 1 https://github.com/tehw0lf/yaft-conformance
+cd yaft-conformance
+tar --create --gzip --file - --sort=name --owner=0 --group=0 --numeric-owner \
+    --mode='u=rwX,go=rX' --mtime='UTC 2020-01-01' \
+    cases schema SPEC.md VERSION | sha256sum
+```
+
+`--mode` is not decoration. Without it the archive carries whatever permission
+bits the checkout happened to have, and the same content yields a different
+checksum under a different umask.
+
 **2. Fetch before testing.** Copy
 [`scripts/fetch-conformance.sh`](scripts/fetch-conformance.sh) into the port,
 have it unpack into `test/conformance/`, and gitignore that directory.
