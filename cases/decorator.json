@@ -1,0 +1,143 @@
+{
+  "suite": "decorator",
+  "version": 1,
+  "cases": [
+    {
+      "name": "method-on",
+      "rules": ["R17"],
+      "target": "method",
+      "toggle": "on",
+      "fallback": "none",
+      "expected": "original"
+    },
+    {
+      "name": "method-off-no-fallback",
+      "rules": ["R17"],
+      "why": "Nothing is the language's empty result: undefined, null, None or the zero value.",
+      "target": "method",
+      "toggle": "off",
+      "fallback": "none",
+      "expected": "nothing"
+    },
+    {
+      "name": "method-on-with-fallback",
+      "rules": ["R17"],
+      "why": "A supplied fallback must not be used while the toggle is on.",
+      "target": "method",
+      "toggle": "on",
+      "fallback": "method",
+      "expected": "original"
+    },
+    {
+      "name": "method-off-with-fallback",
+      "rules": ["R17", "R19"],
+      "target": "method",
+      "toggle": "off",
+      "fallback": "method",
+      "expected": "fallback",
+      "assertions": ["same-arguments", "same-receiver"]
+    },
+    {
+      "name": "async-method-off-no-fallback",
+      "rules": ["R18"],
+      "why": "A null return here breaks an await at the call site, so the empty result must be an already-resolved promise.",
+      "target": "async-method",
+      "toggle": "off",
+      "fallback": "none",
+      "expected": "resolved-nothing"
+    },
+    {
+      "name": "async-method-on",
+      "rules": ["R17", "R18"],
+      "target": "async-method",
+      "toggle": "on",
+      "fallback": "none",
+      "expected": "original"
+    },
+    {
+      "name": "class-on",
+      "rules": ["R17"],
+      "target": "class",
+      "toggle": "on",
+      "fallback": "none",
+      "expected": "original"
+    },
+    {
+      "name": "class-off-no-fallback",
+      "rules": ["R17"],
+      "why": "The class is replaced by a shell that still constructs and still answers every method of the original, each returning nothing.",
+      "target": "class",
+      "toggle": "off",
+      "fallback": "none",
+      "expected": "empty-shell"
+    },
+    {
+      "name": "class-on-with-fallback",
+      "rules": ["R17"],
+      "target": "class",
+      "toggle": "on",
+      "fallback": "class",
+      "expected": "original"
+    },
+    {
+      "name": "class-off-with-fallback",
+      "rules": ["R17"],
+      "target": "class",
+      "toggle": "off",
+      "fallback": "class",
+      "expected": "fallback"
+    },
+    {
+      "name": "class-evaluated-once-on-then-off",
+      "rules": ["R14"],
+      "why": "The toggle is on at decoration and flipped off before use. A class is evaluated once, so the original stays in place -- this is what makes a reload behave identically in every port.",
+      "target": "class",
+      "toggle": "on-then-off",
+      "fallback": "class",
+      "expected": "original"
+    },
+    {
+      "name": "class-evaluated-once-off-then-on",
+      "rules": ["R14"],
+      "why": "The mirror image: off at decoration, on afterwards. The fallback stays, because the decision was already made.",
+      "target": "class",
+      "toggle": "off-then-on",
+      "fallback": "class",
+      "expected": "fallback"
+    },
+    {
+      "name": "method-evaluated-every-call-on-then-off",
+      "rules": ["R15"],
+      "why": "The opposite of the class rule: a method sees the flip and switches to the fallback on the next call.",
+      "target": "method",
+      "toggle": "on-then-off",
+      "fallback": "method",
+      "expected": "fallback"
+    },
+    {
+      "name": "method-evaluated-every-call-off-then-on",
+      "rules": ["R15"],
+      "target": "method",
+      "toggle": "off-then-on",
+      "fallback": "method",
+      "expected": "original"
+    },
+    {
+      "name": "no-provider-method",
+      "rules": ["R16"],
+      "why": "The error belongs at decoration time. Deferring it to the first call turns a startup misconfiguration into a runtime surprise in whichever code path happens to run first.",
+      "target": "method",
+      "toggle": "no-provider",
+      "fallback": "none",
+      "expected": "decoration-error"
+    },
+    {
+      "name": "no-provider-class",
+      "rules": ["R16"],
+      "target": "class",
+      "toggle": "no-provider",
+      "fallback": "none",
+      "expected": "decoration-error"
+    }
+  ]
+}

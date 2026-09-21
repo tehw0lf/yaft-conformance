@@ -1,0 +1,99 @@
+<p align="center"><img src="logo.svg" width="120" alt="YaFT"></p>
+
+# yaft-conformance
+
+The rules of [YaFT](https://github.com/tehw0lf/yaft) written down once, as prose
+and as data, so that every implementation answers the same questions the same
+way.
+
+- [`SPEC.md`](SPEC.md) — the normative rules, numbered `R1`, `R2`, …
+- [`cases/`](cases) — machine-readable cases, each pointing at the rules it pins
+  down
+- [`schema/case.schema.json`](schema/case.schema.json) — the shape of a case file
+- [`VERSION`](VERSION) — the suite version that ports pin
+
+A port is conformant when it passes every case. There is no partial credit and
+no per-port exception list: if a case is wrong, the case gets fixed here, for
+everyone.
+
+## The case files
+
+| File | Covers |
+|---|---|
+| `cases/evaluation.json` | `isEnabled` — value, time bounds, timestamp parsing |
+| `cases/decorator.json` | class and method toggles, fallbacks, evaluation timing |
+| `cases/mapping.json` | normalising backend responses and the boolean shape |
+
+Every evaluation case carries its own `now`:
+
+```json
+{
+  "name": "active-at-boundary",
+  "rules": ["R5"],
+  "why": "The comparison is now < activeAt, so the boundary itself is on.",
+  "now": "2026-09-18T12:00:00Z",
+  "features": {
+    "f": { "key": "f", "value": "true", "activeAt": "2026-09-18T12:00:00Z", "disabledAt": "" }
+  },
+  "key": "f",
+  "expected": true
+}
+```
+
+That is deliberate. Time-dependent behaviour is only testable if the clock can
+be set, so the suite forces every port to make its clock injectable (`R9`).
+
+The `decorator` and `mapping` cases cannot be pure input/output pairs, because
+"the fallback receives the same receiver" is not something JSON can express.
+They instead name a scenario and an outcome in port-neutral terms — `original`,
+`fallback`, `nothing`, `empty-shell`, `decoration-error` — and each adapter maps
+those onto its own language's constructs.
+
+## Wiring a port to the suite
+
+The suite ships as a release asset rather than a submodule, so toolchains like
+Maven or `go test` need no Git handling.
+
+**1. Pin a version.** Add a `conformance.lock` to the port:
+
+```
+version=v1.0.0
+sha256=<checksum of cases.tar.gz>
+```
+
+The checksum is mandatory. A tag can be moved; without a checksum that would
+change a port's tests silently. A suite bump is then a one-line diff that a
+reviewer sees.
+
+**2. Fetch before testing.** Copy
+[`scripts/fetch-conformance.sh`](scripts/fetch-conformance.sh) into the port,
+have it unpack into `test/conformance/`, and gitignore that directory.
+
+**3. Write the adapter.** One test per suite that loads the cases, builds a
+provider from `features`, injects `now`, and asserts `expected`. In TypeScript
+an evaluation case is simply:
+
+```ts
+expect(evaluate(c.features[c.key], Date.parse(c.now))).toBe(c.expected);
+```
+
+**4. Run it in CI**, before the port's own tests.
+
+The adapter must fail loudly if a case file contains a `suite`, `target`,
+`toggle` or `expected` value it does not know. A skipped unknown case is a
+silently unenforced rule — the one failure mode this whole repo exists to
+prevent.
+
+## Changing the suite
+
+- A new rule gets the next free number. Numbers are never reused and never
+  renumbered; a retired rule stays in `SPEC.md` marked withdrawn.
+- A case that changes an expectation is a breaking change: bump the major in
+  `VERSION`, because ports pin it and will need work.
+- Adding cases that only pin down existing rules is a minor bump.
+- Every case carries the rules it covers, and a `why` wherever the expectation
+  is not self-evident.
+
+## License
+
+MIT

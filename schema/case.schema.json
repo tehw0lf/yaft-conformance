@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tehw0lf/yaft-conformance/schema/case.schema.json",
+  "title": "YaFT conformance case file",
+  "type": "object",
+  "required": [
+    "suite",
+    "version",
+    "cases"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "suite": {
+      "enum": [
+        "evaluation",
+        "decorator",
+        "mapping"
+      ],
+      "description": "Which case file this is. The adapter dispatches on it."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Format version of the case file, bumped when the shape of a case changes."
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "string",
+      "pattern": "^R[0-9]+$",
+      "description": "The SPEC.md rule this case pins down."
+    },
+    "feature": {
+      "description": "A feature record. Fields may be absent, null or empty on purpose; that is what several cases test.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "activeAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disabledAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "suite": {
+          "const": "evaluation"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "rules",
+              "now",
+              "features",
+              "key",
+              "expected"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$"
+              },
+              "rules": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/rule"
+                }
+              },
+              "why": {
+                "type": "string"
+              },
+              "now": {
+                "type": "string",
+                "description": "The instant to evaluate at. Always RFC 3339 with offset, and always valid \u2014 an invalid now would make the case untestable."
+              },
+              "features": {
+                "type": "object",
+                "description": "The provider's data, keyed by feature key.",
+                "additionalProperties": {
+                  "$ref": "#/$defs/feature"
+                }
+              },
+              "key": {
+                "type": "string",
+                "description": "The key to evaluate. May be absent from features on purpose."
+              },
+              "expected": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "suite": {
+          "const": "decorator"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "rules",
+              "target",
+              "toggle",
+              "fallback",
+              "expected"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$"
+              },
+              "rules": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/rule"
+                }
+              },
+              "why": {
+                "type": "string"
+              },
+              "target": {
+                "enum": [
+                  "class",
+                  "method",
+                  "async-method"
+                ],
+                "description": "What is decorated."
+              },
+              "toggle": {
+                "enum": [
+                  "on",
+                  "off",
+                  "on-then-off",
+                  "off-then-on",
+                  "no-provider"
+                ],
+                "description": "The toggle state. The two two-phase values change the toggle after decoration and before the call, which is how R14 and R15 are told apart."
+              },
+              "fallback": {
+                "enum": [
+                  "none",
+                  "class",
+                  "method"
+                ],
+                "description": "Which kind of fallback is supplied, if any."
+              },
+              "expected": {
+                "enum": [
+                  "original",
+                  "fallback",
+                  "nothing",
+                  "resolved-nothing",
+                  "empty-shell",
+                  "decoration-error"
+                ],
+                "description": "The outcome the adapter asserts, expressed in port-neutral terms. 'nothing' is undefined/null/None/zero value; 'resolved-nothing' is an already-resolved promise of it."
+              },
+              "assertions": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "same-arguments",
+                    "same-receiver"
+                  ]
+                },
+                "description": "Extra properties the adapter must check on a fallback invocation."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "suite": {
+          "const": "mapping"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "rules",
+              "shape",
+              "response",
+              "expected"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$"
+              },
+              "rules": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/rule"
+                }
+              },
+              "why": {
+                "type": "string"
+              },
+              "shape": {
+                "enum": [
+                  "feature",
+                  "boolean"
+                ],
+                "description": "Which provider shape consumes this response."
+              },
+              "response": {
+                "description": "The raw payload as the backend or a local fixture delivers it.",
+                "type": [
+                  "object",
+                  "array"
+                ]
+              },
+              "expected": {
+                "type": "object",
+                "description": "The normalised data the provider must hold afterwards, keyed by feature key. For the boolean shape the values are booleans; for the feature shape they are normalised feature records with null/empty dates written as \"\".",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+# Publishes cases.tar.gz plus its checksum when a version tag is pushed.
+#
+# Ports pin the tag and the checksum in their conformance.lock and fetch the
+# asset with scripts/fetch-conformance.sh.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: publish the suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: check the tag matches VERSION
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared="$(tr -d '[:space:]' < VERSION)"
+          if [[ "$tagged" != "$declared" ]]; then
+            echo "tag $GITHUB_REF_NAME does not match VERSION ($declared)" >&2
+            exit 1
+          fi
+
+      - name: build the asset
+        run: |
+          tar --create --gzip --file cases.tar.gz \
+            --sort=name --owner=0 --group=0 --numeric-owner --mtime='UTC 2020-01-01' \
+            cases schema SPEC.md VERSION
+          sha256sum cases.tar.gz > cases.tar.gz.sha256
+          cat cases.tar.gz.sha256
+
+      - uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        with:
+          files: |
+            cases.tar.gz
+            cases.tar.gz.sha256
+          generate_release_notes: true

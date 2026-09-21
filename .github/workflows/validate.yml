@@ -1,0 +1,34 @@
+# Validates the case files on every push and pull request.
+#
+# The suite is data, so there is nothing to build or publish here -- the only
+# thing that can break is a case file that no longer matches the schema, points
+# at a rule that does not exist, or repeats a case name.
+name: validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate case files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: "3.13"
+
+      - run: pip install check-jsonschema
+
+      - name: check against the case schema
+        run: check-jsonschema --schemafile schema/case.schema.json cases/*.json
+
+      - name: check rule references, names and spec cross-links
+        run: python3 scripts/validate-cases.py

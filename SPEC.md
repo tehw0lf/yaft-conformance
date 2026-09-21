@@ -1,0 +1,202 @@
+# YaFT Specification
+
+Normative rules for every YaFT implementation. The reference implementation is
+[`@tehw0lf/yaft`](https://github.com/tehw0lf/yaft) (TypeScript); where this
+document and the reference disagree, **this document wins** and the reference
+is a bug.
+
+Rules are numbered `R1`, `R2`, … and never renumbered. A rule that is retired
+keeps its number and is marked withdrawn, so a `rule` reference in an old case
+file never silently points at something else.
+
+The key words MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119.
+
+## 1. Data model
+
+A **feature** is a record with these fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `key` | string | unique within a provider |
+| `value` | string | `"true"` or `"false"` — a string, not a boolean |
+| `activeAt` | string, nullable | RFC 3339 with offset, or unset |
+| `disabledAt` | string, nullable | RFC 3339 with offset, or unset |
+| `tags` | string array | optional |
+
+**R1.** `value` MUST be treated as a string. The backend stores it as one, and
+a port that coerces it to a boolean at the edges will disagree with the backend
+about values like `"1"` or `"yes"`.
+
+**R2.** `activeAt` and `disabledAt` are optional bounds. A port MUST treat
+`null`, an empty string and an absent field as the same thing: no bound.
+
+## 2. Evaluation
+
+The core of every port is a single function that answers whether a feature is
+on at a given instant.
+
+```
+function isEnabled(key, now):
+    feature = data[key]
+    if feature is null or missing:          return false
+    if feature.value != "true":             return false
+
+    t = parseTimestamp(feature.activeAt)
+    if t is valid and now < t:              return false
+
+    t = parseTimestamp(feature.disabledAt)
+    if t is valid and now >= t:             return false
+
+    return true
+```
+
+**R3.** A missing key, a `null` feature or an absent feature MUST evaluate to
+`false`.
+
+**R4.** Only the exact string `"true"` MUST evaluate to on. `"TRUE"`, `"True"`,
+`"1"`, `"yes"`, `""` and an absent `value` MUST evaluate to `false`.
+Comparison is case-sensitive and exact — no trimming, no coercion.
+
+**R5.** `now < activeAt` MUST evaluate to `false`. The window is half-open at
+this end: at exactly `activeAt` the feature is **on**.
+
+**R6.** `now >= disabledAt` MUST evaluate to `false`. At exactly `disabledAt`
+the feature is **off** — the opposite boundary behaviour from R5. The two
+together make the window `[activeAt, disabledAt)`.
+
+**R7.** An `activeAt` later than `disabledAt` MUST NOT be special-cased. It
+yields a window that is never open, and a port MUST NOT swap the bounds, warn,
+or throw.
+
+**R8.** A bound that is unset or does not parse under R9–R12 MUST be ignored —
+treated as no bound, not as an error and not as a bound of zero. Evaluation
+MUST NOT throw for any input. A port SHOULD log a warning when it ignores a
+malformed bound.
+
+**R9.** The clock MUST be injectable, defaulting to system time. Without this a
+port cannot run the conformance suite, which supplies `now` per case, and its
+own time-dependent tests cannot be deterministic.
+
+## 3. Timestamps
+
+**R10.** Only RFC 3339 with an explicit offset is valid:
+
+```
+YYYY-MM-DDThh:mm:ss[.fff](Z|±hh:mm)
+```
+
+`T` and `Z` MAY be lowercase. Fractional seconds MAY be present with any number
+of digits. Everything else is invalid under R8 and therefore ignored —
+specifically a bare date (`2026-09-18`), a timestamp without an offset
+(`2026-09-18T15:00:00`), a Unix timestamp, and any other separator or ordering.
+
+The reason is portability, not strictness: JavaScript reads a bare date as UTC
+midnight and an offset-less timestamp as local time, while most other languages
+read both as local. Accepting them would make the same feature flip at
+different instants in different ports.
+
+**R11.** The calendar components MUST be range-checked **before** parsing:
+month 1–12, day 1 to the length of that month, leap years included, hour 0–23,
+minute 0–59, second 0–60.
+
+This is not redundant with a format check. Permissive parsers do not reject an
+impossible date, they roll it over — JavaScript's `Date.parse` turns
+`2027-02-30` into `2027-03-02`. A bound silently shifted by days is worse than
+one that is ignored. Ports in languages with a strict parser still MUST reject
+these values, so that every port ignores exactly the same set.
+
+**R12.** A leap second (`:60`) is permitted by RFC 3339 but MUST be ignored,
+because not every language can represent one. R11 lets second 60 through the
+range check and this rule rejects it afterwards; the outcome is the same as any
+other ignored bound.
+
+**R13.** An offset MUST be applied, not stripped. `2026-09-18T14:00:00+02:00`
+and `2026-09-18T12:00:00Z` are the same instant and MUST evaluate identically.
+
+## 4. Decorators
+
+A port wraps a class and a method — or the nearest equivalent its language
+offers. Evaluation timing is observable behaviour, so it is fixed here rather
+than left to each port.
+
+**R14.** A class-level toggle MUST be evaluated **once**, when the class is
+decorated (loaded). A toggle changed afterwards MUST NOT affect an already
+decorated class.
+
+**R15.** A method-level toggle MUST be evaluated on **every call**. A toggle
+changed after loading MUST affect the next call.
+
+**R16.** If no provider is set, decorating MUST fail at decoration time, not at
+the first call. In the reference this is a thrown
+`"FeatureToggleProvider not set"`.
+
+**R17.** Fallback behaviour:
+
+| Target | Fallback | Toggle on | Toggle off |
+|---|---|---|---|
+| Method | none | original method | *nothing* |
+| Method | method | original method | fallback, same arguments, same receiver |
+| Class | none | original class | empty shell: every method returns *nothing* |
+| Class | class | original class | fallback class |
+
+*Nothing* is the language's empty result: `undefined`, `null`, `None`, or the
+zero value.
+
+**R18.** An asynchronous method on the empty shell MUST return an
+already-resolved promise (or the language's equivalent), never a null value —
+otherwise an `await` at the call site breaks.
+
+**R19.** A fallback method MUST be invoked with the same arguments and the same
+receiver as the original, so it can read the instance state the original would
+have read.
+
+## 5. Providers
+
+A provider supplies feature data and answers `isEnabled`. Two shapes exist:
+
+**R20.** *Feature shape* — the provider holds full feature records and MUST
+delegate to the evaluation function of section 2. The time logic MUST live in
+one place in the core, not be copied into each provider.
+
+**R21.** *Boolean shape* — the provider holds plain booleans
+(`{"myToggle": true}`) that map directly onto `isEnabled`. There is no time
+logic here by design. A missing key MUST evaluate to `false`.
+
+## 6. Backend response mapping
+
+Only relevant for a port with an API provider.
+
+**R22.** `GET /features/:key` returns two different shapes and a port MUST read
+both:
+
+- a single toggle as a flat object with **lowercase** field names
+  (`key`, `value`, `activeAt`, `disabledAt`, `tags`);
+- a UUID group as `{"toggles": [...]}` with **capitalised** field names
+  (`Key`, `Value`, `ActiveAt`, `DisabledAt`, `Tags`), because the backend's DTO
+  carries no JSON tags.
+
+A collection MAY also arrive under `value` instead of `toggles`; both MUST be
+handled identically.
+
+**R23.** Field normalisation MUST be by **presence**, not by truthiness. A
+lowercase field that is present but empty (`"value": ""`) MUST win over an
+absent capitalised one, and MUST NOT fall through to it. Choosing with an
+`or`-style operator loses a legitimately falsy value.
+
+**R24.** The backend returns unset dates as `null`; local fixtures commonly use
+`""`. Both MUST normalise to "no bound" (R2).
+
+**R25.** An entry without a usable key MUST be skipped rather than stored under
+an empty key.
+
+## 7. Backend agreement
+
+**R26.** The backend flips scheduled toggles with a cron job that ticks about
+once a minute, comparing against `now()`. A library that evaluates locally is
+therefore up to a tick *ahead* of the backend's stored `value`. This is
+intended: a port MUST evaluate the bounds itself and MUST NOT wait for the
+backend's `value` to change.
+
+## Withdrawn rules
+
+None.

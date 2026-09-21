@@ -1,0 +1,7 @@
+# Release artefacts, built by CI from the case files
+cases.tar.gz
+cases.tar.gz.sha256
+
+# Python
+__pycache__/
+*.pyc
