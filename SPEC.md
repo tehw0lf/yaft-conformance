@@ -166,22 +166,30 @@ logic here by design. A missing key MUST evaluate to `false`.
 
 Only relevant for a port with an API provider.
 
-**R22.** `GET /features/:key` returns two different shapes and a port MUST read
-both:
+**R22.** `GET /features/:key` returns two different envelopes and a port MUST
+read both:
 
-- a single toggle as a flat object with **lowercase** field names
-  (`key`, `value`, `activeAt`, `disabledAt`, `tags`);
-- a UUID group as `{"toggles": [...]}` with **capitalised** field names
-  (`Key`, `Value`, `ActiveAt`, `DisabledAt`, `Tags`), because the backend's DTO
-  carries no JSON tags.
+- a single toggle as a flat object;
+- a UUID group as `{"toggles": [...]}`.
 
 A collection MAY also arrive under `value` instead of `toggles`; both MUST be
 handled identically.
 
+**R22a.** Field names are **lowercase** (`key`, `value`, `activeAt`,
+`disabledAt`, `tags`) in both envelopes.
+
+Backends before 0.1.7 spelled the group's fields capitalised (`Key`, `Value`,
+`ActiveAt`, `DisabledAt`, `Tags`) while a single toggle came back lowercase,
+because the DTO carried no JSON tags. That is fixed in the backend, but a port
+cannot assume which version it is talking to, so it MUST accept either spelling
+and normalise to the lowercase one. The capitalised spelling is legacy: a port
+MUST NOT emit it and SHOULD NOT rely on it.
+
 **R23.** Field normalisation MUST be by **presence**, not by truthiness. A
-lowercase field that is present but empty (`"value": ""`) MUST win over an
-absent capitalised one, and MUST NOT fall through to it. Choosing with an
-`or`-style operator loses a legitimately falsy value.
+field that is present but empty (`"value": ""`, `"tags": []`) MUST be kept as
+it is and MUST NOT fall through to another spelling or to a default. Choosing
+with an `or`-style operator (`a.value || a.Value`) loses a legitimately falsy
+value, which turns an off feature on.
 
 **R24.** The backend returns unset dates as `null`; local fixtures commonly use
 `""`. Both MUST normalise to "no bound" (R2).

@@ -34,7 +34,7 @@
   "$defs": {
     "rule": {
       "type": "string",
-      "pattern": "^R[0-9]+$",
+      "pattern": "^R[0-9]+[a-z]?$",
       "description": "The SPEC.md rule this case pins down."
     },
     "feature": {

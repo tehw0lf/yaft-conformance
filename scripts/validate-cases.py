@@ -27,13 +27,19 @@ UNTESTED = {
 }
 
 
+def _rule_order(rule: str) -> tuple[int, str]:
+    """Sorts R9 before R10, and R22 before R22a."""
+    match = re.fullmatch(r"R(\d+)([a-z]?)", rule)
+    return (int(match.group(1)), match.group(2)) if match else (0, rule)
+
+
 def spec_rules() -> tuple[set[str], set[str]]:
     text = (ROOT / "SPEC.md").read_text(encoding="utf-8")
     withdrawn = set()
     defined = set()
-    for match in re.finditer(r"\*\*(R\d+)\.\*\*", text):
+    for match in re.finditer(r"\*\*(R\d+[a-z]?)\.\*\*", text):
         defined.add(match.group(1))
-    for match in re.finditer(r"\*\*(R\d+)\.\*\*[^\n]*withdrawn", text, re.IGNORECASE):
+    for match in re.finditer(r"\*\*(R\d+[a-z]?)\.\*\*[^\n]*withdrawn", text, re.IGNORECASE):
         withdrawn.add(match.group(1))
     # The rule table in section 4 states R17 in a table rather than a sentence;
     # any rule mentioned in a heading-level bold marker is picked up above.
@@ -73,21 +79,21 @@ def main() -> int:
                     )
 
     uncovered = defined - withdrawn - referenced - set(UNTESTED)
-    for rule in sorted(uncovered, key=lambda r: int(r[1:])):
+    for rule in sorted(uncovered, key=_rule_order):
         errors.append(
             f"SPEC.md: {rule} has no case. Add one, or list it in UNTESTED "
             "with a reason."
         )
 
     stale = set(UNTESTED) & referenced
-    for rule in sorted(stale, key=lambda r: int(r[1:])):
+    for rule in sorted(stale, key=_rule_order):
         errors.append(
             f"scripts/validate-cases.py: {rule} is listed as untested but now has "
             "a case; remove it from UNTESTED."
         )
 
     missing = set(UNTESTED) - defined
-    for rule in sorted(missing, key=lambda r: int(r[1:])):
+    for rule in sorted(missing, key=_rule_order):
         errors.append(
             f"scripts/validate-cases.py: UNTESTED lists {rule}, which SPEC.md "
             "does not define."

@@ -3,18 +3,23 @@
   "version": 1,
   "cases": [
     {
-      "name": "toggles-capitalised",
-      "rules": ["R22"],
-      "why": "A UUID group comes back under toggles with capitalised names, because the backend DTO carries no JSON tags.",
+      "name": "toggles-lowercase",
+      "rules": [
+        "R22",
+        "R22a"
+      ],
+      "why": "What backend 0.1.7 and later return for a UUID group: the same lowercase spelling as a single toggle. The capitalised variant in toggles-capitalised is the legacy shape a port must still accept.",
       "shape": "feature",
       "response": {
         "toggles": [
           {
-            "Key": "uuid|a",
-            "Value": "true",
-            "ActiveAt": null,
-            "DisabledAt": null,
-            "Tags": ["beta"]
+            "key": "uuid|a",
+            "value": "true",
+            "activeAt": null,
+            "disabledAt": null,
+            "tags": [
+              "beta"
+            ]
           }
         ]
       },
@@ -24,13 +29,50 @@
           "value": "true",
           "activeAt": "",
           "disabledAt": "",
-          "tags": ["beta"]
+          "tags": [
+            "beta"
+          ]
+        }
+      }
+    },
+    {
+      "name": "toggles-capitalised",
+      "rules": [
+        "R22",
+        "R22a"
+      ],
+      "why": "A UUID group comes back under toggles with capitalised names, because the backend DTO carries no JSON tags.",
+      "shape": "feature",
+      "response": {
+        "toggles": [
+          {
+            "Key": "uuid|a",
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": null,
+            "Tags": [
+              "beta"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": [
+            "beta"
+          ]
         }
       }
     },
     {
       "name": "value-collection-key",
-      "rules": ["R22"],
+      "rules": [
+        "R22"
+      ],
       "why": "Some responses carry the collection under value instead of toggles; both must be read the same way.",
       "shape": "feature",
       "response": {
@@ -56,7 +98,10 @@
     },
     {
       "name": "single-toggle-lowercase",
-      "rules": ["R22"],
+      "rules": [
+        "R22",
+        "R22a"
+      ],
       "why": "A single toggle comes back flat and lowercase -- the other of the two shapes a port must read.",
       "shape": "feature",
       "response": {
@@ -64,7 +109,10 @@
         "value": "true",
         "activeAt": "2026-09-18T10:00:00Z",
         "disabledAt": "2026-09-18T14:00:00Z",
-        "tags": ["beta", "internal"]
+        "tags": [
+          "beta",
+          "internal"
+        ]
       },
       "expected": {
         "uuid|a": {
@@ -72,133 +120,272 @@
           "value": "true",
           "activeAt": "2026-09-18T10:00:00Z",
           "disabledAt": "2026-09-18T14:00:00Z",
-          "tags": ["beta", "internal"]
+          "tags": [
+            "beta",
+            "internal"
+          ]
         }
       }
     },
     {
       "name": "mixed-casing-in-one-collection",
-      "rules": ["R22"],
+      "rules": [
+        "R22",
+        "R22a"
+      ],
       "shape": "feature",
       "response": {
         "toggles": [
-          { "Key": "uuid|a", "Value": "true", "ActiveAt": null, "DisabledAt": null },
-          { "key": "uuid|b", "value": "false", "activeAt": null, "disabledAt": null }
+          {
+            "Key": "uuid|a",
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": null
+          },
+          {
+            "key": "uuid|b",
+            "value": "false",
+            "activeAt": null,
+            "disabledAt": null
+          }
         ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] },
-        "uuid|b": { "key": "uuid|b", "value": "false", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        },
+        "uuid|b": {
+          "key": "uuid|b",
+          "value": "false",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "empty-value-not-replaced",
-      "rules": ["R23"],
+      "rules": [
+        "R23"
+      ],
       "why": "The heart of the presence rule. A lowercase value of \"\" is present and must win; an or-style choice would skip past it to the capitalised field and report \"true\", turning an off feature on.",
       "shape": "feature",
       "response": {
         "toggles": [
-          { "key": "uuid|a", "value": "", "Value": "true", "activeAt": null, "disabledAt": null }
+          {
+            "key": "uuid|a",
+            "value": "",
+            "Value": "true",
+            "activeAt": null,
+            "disabledAt": null
+          }
         ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "empty-tags-not-replaced",
-      "rules": ["R23"],
+      "rules": [
+        "R23"
+      ],
       "why": "The same trap for arrays: an empty tags list is a real answer, not a missing one.",
       "shape": "feature",
       "response": {
         "toggles": [
-          { "key": "uuid|a", "value": "true", "tags": [], "Tags": ["beta"], "activeAt": null, "disabledAt": null }
+          {
+            "key": "uuid|a",
+            "value": "true",
+            "tags": [],
+            "Tags": [
+              "beta"
+            ],
+            "activeAt": null,
+            "disabledAt": null
+          }
         ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "null-and-empty-dates-equivalent",
-      "rules": ["R24"],
+      "rules": [
+        "R24"
+      ],
       "why": "The backend sends null, local fixtures send \"\". Both normalise to no bound.",
       "shape": "feature",
       "response": {
         "toggles": [
-          { "Key": "uuid|a", "Value": "true", "ActiveAt": null, "DisabledAt": "" }
+          {
+            "Key": "uuid|a",
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": ""
+          }
         ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "absent-date-fields",
-      "rules": ["R24"],
+      "rules": [
+        "R24"
+      ],
       "shape": "feature",
       "response": {
-        "toggles": [{ "Key": "uuid|a", "Value": "true" }]
+        "toggles": [
+          {
+            "Key": "uuid|a",
+            "Value": "true"
+          }
+        ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "absent-tags-default-to-empty",
-      "rules": ["R22"],
+      "rules": [
+        "R22"
+      ],
       "shape": "feature",
       "response": {
-        "toggles": [{ "Key": "uuid|a", "Value": "true", "ActiveAt": null, "DisabledAt": null }]
+        "toggles": [
+          {
+            "Key": "uuid|a",
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": null
+          }
+        ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "entry-without-key-skipped",
-      "rules": ["R25"],
+      "rules": [
+        "R25"
+      ],
       "why": "Storing it under an empty key would make it reachable by isEnabled(\"\").",
       "shape": "feature",
       "response": {
         "toggles": [
-          { "Value": "true", "ActiveAt": null, "DisabledAt": null },
-          { "Key": "uuid|a", "Value": "true", "ActiveAt": null, "DisabledAt": null }
+          {
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": null
+          },
+          {
+            "Key": "uuid|a",
+            "Value": "true",
+            "ActiveAt": null,
+            "DisabledAt": null
+          }
         ]
       },
       "expected": {
-        "uuid|a": { "key": "uuid|a", "value": "true", "activeAt": "", "disabledAt": "", "tags": [] }
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
       }
     },
     {
       "name": "empty-collection",
-      "rules": ["R22"],
+      "rules": [
+        "R22"
+      ],
       "shape": "feature",
-      "response": { "toggles": [] },
+      "response": {
+        "toggles": []
+      },
       "expected": {}
     },
     {
       "name": "boolean-shape-true",
-      "rules": ["R21"],
+      "rules": [
+        "R21"
+      ],
       "why": "The boolean shape maps straight onto isEnabled and has no time logic at all.",
       "shape": "boolean",
-      "response": { "myToggle": true },
-      "expected": { "myToggle": true }
+      "response": {
+        "myToggle": true
+      },
+      "expected": {
+        "myToggle": true
+      }
     },
     {
       "name": "boolean-shape-false",
-      "rules": ["R21"],
+      "rules": [
+        "R21"
+      ],
       "shape": "boolean",
-      "response": { "myToggle": false },
-      "expected": { "myToggle": false }
+      "response": {
+        "myToggle": false
+      },
+      "expected": {
+        "myToggle": false
+      }
     },
     {
       "name": "boolean-shape-missing-key",
-      "rules": ["R21"],
+      "rules": [
+        "R21"
+      ],
       "why": "A key that is not in the data is off, never an error.",
       "shape": "boolean",
-      "response": { "other": true },
-      "expected": { "other": true }
+      "response": {
+        "other": true
+      },
+      "expected": {
+        "other": true
+      }
     }
   ]
 }
