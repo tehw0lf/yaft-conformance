@@ -21,7 +21,7 @@
     "version": {
       "type": "integer",
       "minimum": 1,
-      "description": "Format version of the case file, bumped when the shape of a case changes."
+      "description": "Format version of the case file, bumped when the shape of a case changes. An adapter MUST reject a format version it does not know, so a new field can never be silently ignored."
     },
     "cases": {
       "type": "array",
@@ -107,7 +107,7 @@
               },
               "now": {
                 "type": "string",
-                "description": "The instant to evaluate at. Always RFC 3339 with offset, and always valid \u2014 an invalid now would make the case untestable."
+                "description": "The instant to evaluate at. Always RFC 3339 with offset, and always valid — an invalid now would make the case untestable."
               },
               "features": {
                 "type": "object",
@@ -263,8 +263,38 @@
                 "type": "object",
                 "description": "The normalised data the provider must hold afterwards, keyed by feature key. For the boolean shape the values are booleans; for the feature shape they are normalised feature records with null/empty dates written as \"\".",
                 "additionalProperties": true
+              },
+              "isEnabled": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                },
+                "description": "Boolean shape only: keys to ask isEnabled for and the answer each must give, including keys absent from the response."
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "shape": {
+                      "const": "boolean"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "isEnabled"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "isEnabled"
+                    ]
+                  }
+                }
+              }
+            ]
           }
         }
       }

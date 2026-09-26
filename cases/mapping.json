@@ -1,6 +1,6 @@
 {
   "suite": "mapping",
-  "version": 1,
+  "version": 2,
   "cases": [
     {
       "name": "toggles-lowercase",
@@ -358,6 +358,9 @@
       },
       "expected": {
         "myToggle": true
+      },
+      "isEnabled": {
+        "myToggle": true
       }
     },
     {
@@ -371,6 +374,9 @@
       },
       "expected": {
         "myToggle": false
+      },
+      "isEnabled": {
+        "myToggle": false
       }
     },
     {
@@ -378,12 +384,16 @@
       "rules": [
         "R21"
       ],
-      "why": "A key that is not in the data is off, never an error.",
+      "why": "A key that is not in the data is off, never an error. myToggle is probed through isEnabled, since it is absent from the data and a comparison of the data alone cannot catch a wrong answer.",
       "shape": "boolean",
       "response": {
         "other": true
       },
       "expected": {
+        "other": true
+      },
+      "isEnabled": {
+        "myToggle": false,
         "other": true
       }
     }
