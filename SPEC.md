@@ -187,9 +187,10 @@ check this through `isEnabled`, not only through the stored data, because a
 provider can hold the right data and still answer a missing key wrongly.
 
 **R29.** In the boolean shape only the JSON boolean `true` is on. An entry
-whose value is anything else — the string `"true"`, the string `"false"`,
-`1`, `null` — MUST be dropped when the data is loaded, and the key then
-evaluates to `false` like any missing key.
+whose value is not a JSON boolean — the string `"true"`, the string
+`"false"`, `1`, `null` — MUST be dropped when the data is loaded, and the key
+then evaluates to `false` like any missing key. An entry holding the boolean
+`false` MUST be kept, and evaluates to `false`.
 
 This is R4 for the boolean shape: no coercion. A port that returns the stored
 value and lets the caller test its truthiness turns `"false"` on, because a
