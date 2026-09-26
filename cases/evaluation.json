@@ -282,6 +282,87 @@
       "expected": false
     },
     {
+      "name": "fractional-sub-millisecond-disabled-at",
+      "rules": ["R27", "R6"],
+      "why": "Truncated, the bound is exactly now and the feature is off (R6). Kept at full precision or rounded up, it lies after now and the feature stays on.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "", "disabledAt": "2026-09-18T12:00:00.0009Z" } },
+      "key": "f",
+      "expected": false
+    },
+    {
+      "name": "fractional-sub-millisecond-active-at",
+      "rules": ["R27", "R5"],
+      "why": "The mirror image: truncated, activeAt is exactly now and the feature is on (R5). Kept at full precision, it lies after now and the feature is off.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "2026-09-18T12:00:00.0009Z", "disabledAt": "" } },
+      "key": "f",
+      "expected": true
+    },
+    {
+      "name": "fractional-truncated-not-rounded",
+      "rules": ["R27"],
+      "why": "Rounded, .9999999 becomes 12:00:01 and the feature is not active yet. Truncated, it is .999, which is now.",
+      "now": "2026-09-18T12:00:00.999Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "2026-09-18T12:00:00.9999999Z", "disabledAt": "" } },
+      "key": "f",
+      "expected": true
+    },
+    {
+      "name": "fractional-more-than-nine-digits",
+      "rules": ["R27", "R10"],
+      "why": "Twelve digits. A parser capped at nanoseconds rejects this and drops the bound, leaving the feature on; truncated it is .123, which is now, so the feature is off.",
+      "now": "2026-09-18T12:00:00.123Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "", "disabledAt": "2026-09-18T12:00:00.123456789123Z" } },
+      "key": "f",
+      "expected": false
+    },
+    {
+      "name": "offset-beyond-eighteen-hours",
+      "rules": ["R28", "R13"],
+      "why": "+20:00 puts this bound at 2026-09-18T00:00:00Z, twelve hours before now. A date library limited to ±18:00 rejects it and leaves the feature on.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "", "disabledAt": "2026-09-18T20:00:00+20:00" } },
+      "key": "f",
+      "expected": false
+    },
+    {
+      "name": "offset-largest-negative",
+      "rules": ["R28", "R13"],
+      "why": "-23:59 is the largest offset allowed and puts this bound exactly at now, so the feature is off (R6).",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "", "disabledAt": "2026-09-17T12:01:00-23:59" } },
+      "key": "f",
+      "expected": false
+    },
+    {
+      "name": "offset-negative-zero",
+      "rules": ["R28"],
+      "why": "-00:00 is RFC 3339's unknown local offset and names the same instant as Z.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "", "disabledAt": "2026-09-18T12:00:00-00:00" } },
+      "key": "f",
+      "expected": false
+    },
+    {
+      "name": "offset-hour-24-ignored",
+      "rules": ["R28", "R8"],
+      "why": "Hour 24 is out of range, so the bound is ignored and the feature is on. Accepted, it would be a bound in 2099 and the feature off.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "2099-09-18T12:00:00+24:00", "disabledAt": "" } },
+      "key": "f",
+      "expected": true
+    },
+    {
+      "name": "offset-minute-60-ignored",
+      "rules": ["R28", "R8"],
+      "why": "Minute 60 is out of range; the same reasoning as offset-hour-24-ignored.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": "true", "activeAt": "2099-09-18T12:00:00+02:60", "disabledAt": "" } },
+      "key": "f",
+      "expected": true
+    },
+    {
       "name": "bounds-empty-string",
       "rules": ["R2", "R8"],
       "now": "2026-09-18T12:00:00Z",

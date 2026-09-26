@@ -113,6 +113,28 @@ other ignored bound.
 **R13.** An offset MUST be applied, not stripped. `2026-09-18T14:00:00+02:00`
 and `2026-09-18T12:00:00Z` are the same instant and MUST evaluate identically.
 
+**R27.** Fractional seconds MUST be **truncated** to milliseconds — not
+rounded, and not kept at a finer precision. `12:00:00.0009Z` is
+`12:00:00.000Z`, and `12:00:00.9999Z` is `12:00:00.999Z`, not `12:00:01Z`.
+Any number of digits MUST be accepted (R10), including more than nine.
+
+JavaScript's `Date` holds milliseconds and `Date.parse` drops the rest. A port
+that keeps nanoseconds flips a sub-millisecond bound up to a millisecond later
+than the reference, and one that rounds flips it up to half a millisecond
+early. Neither is visible in normal use; both are visible in a boundary case,
+and the point of the suite is that no port has its own boundaries.
+
+**R28.** An offset's hours MUST be `00`–`23` and its minutes `00`–`59`. Any
+other offset makes the timestamp invalid, and it is then ignored under R8.
+Within that range every offset MUST be applied (R13) — including offsets
+beyond `±18:00`, which some date libraries (Java's `ZoneOffset`) cannot
+represent and a port there has to compute itself. `-00:00` is the same
+instant as `+00:00`.
+
+This is the range JavaScript's `Date.parse` accepts. RFC 3339 does not bound
+the offset itself, so without this rule each port would inherit whatever its
+date library happens to allow.
+
 ## 4. Decorators
 
 A port wraps a class and a method — or the nearest equivalent its language
@@ -160,7 +182,21 @@ one place in the core, not be copied into each provider.
 
 **R21.** *Boolean shape* — the provider holds plain booleans
 (`{"myToggle": true}`) that map directly onto `isEnabled`. There is no time
-logic here by design. A missing key MUST evaluate to `false`.
+logic here by design. A missing key MUST evaluate to `false`. The mapping cases
+check this through `isEnabled`, not only through the stored data, because a
+provider can hold the right data and still answer a missing key wrongly.
+
+**R29.** In the boolean shape only the JSON boolean `true` is on. An entry
+whose value is not a JSON boolean — the string `"true"`, the string
+`"false"`, `1`, `null` — MUST be dropped when the data is loaded, and the key
+then evaluates to `false` like any missing key. An entry holding the boolean
+`false` MUST be kept, and evaluates to `false`.
+
+This is R4 for the boolean shape: no coercion. A port that returns the stored
+value and lets the caller test its truthiness turns `"false"` on, because a
+non-empty string is truthy in JavaScript, Python and more. Dropping at load,
+rather than only answering `false`, keeps the stored data identical across
+ports, so the mapping cases can compare it.
 
 ## 6. Backend response mapping
 

@@ -1,6 +1,6 @@
 {
   "suite": "mapping",
-  "version": 1,
+  "version": 2,
   "cases": [
     {
       "name": "toggles-lowercase",
@@ -358,6 +358,9 @@
       },
       "expected": {
         "myToggle": true
+      },
+      "isEnabled": {
+        "myToggle": true
       }
     },
     {
@@ -371,6 +374,9 @@
       },
       "expected": {
         "myToggle": false
+      },
+      "isEnabled": {
+        "myToggle": false
       }
     },
     {
@@ -378,13 +384,87 @@
       "rules": [
         "R21"
       ],
-      "why": "A key that is not in the data is off, never an error.",
+      "why": "A key that is not in the data is off, never an error. myToggle is probed through isEnabled, since it is absent from the data and a comparison of the data alone cannot catch a wrong answer.",
       "shape": "boolean",
       "response": {
         "other": true
       },
       "expected": {
         "other": true
+      },
+      "isEnabled": {
+        "myToggle": false,
+        "other": true
+      }
+    },
+    {
+      "name": "boolean-shape-string-false-is-off",
+      "rules": [
+        "R29"
+      ],
+      "why": "The case that makes coercion dangerous: \"false\" is a non-empty string, so a truthiness check turns an explicitly disabled toggle on.",
+      "shape": "boolean",
+      "response": {
+        "myToggle": "false",
+        "other": true
+      },
+      "expected": {
+        "other": true
+      },
+      "isEnabled": {
+        "myToggle": false,
+        "other": true
+      }
+    },
+    {
+      "name": "boolean-shape-string-true-is-off",
+      "rules": [
+        "R29"
+      ],
+      "why": "The same rule the other way round: a string is never a boolean, even one that reads like true.",
+      "shape": "boolean",
+      "response": {
+        "myToggle": "true"
+      },
+      "expected": {},
+      "isEnabled": {
+        "myToggle": false
+      }
+    },
+    {
+      "name": "boolean-shape-number-is-off",
+      "rules": [
+        "R29"
+      ],
+      "shape": "boolean",
+      "response": {
+        "one": 1,
+        "zero": 0
+      },
+      "expected": {},
+      "isEnabled": {
+        "one": false,
+        "zero": false
+      }
+    },
+    {
+      "name": "boolean-shape-null-is-off",
+      "rules": [
+        "R29",
+        "R21"
+      ],
+      "why": "null is dropped like any other non-boolean, which leaves the key missing -- and a missing key is off.",
+      "shape": "boolean",
+      "response": {
+        "myToggle": null,
+        "other": false
+      },
+      "expected": {
+        "other": false
+      },
+      "isEnabled": {
+        "myToggle": false,
+        "other": false
       }
     }
   ]
