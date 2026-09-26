@@ -186,6 +186,17 @@ logic here by design. A missing key MUST evaluate to `false`. The mapping cases
 check this through `isEnabled`, not only through the stored data, because a
 provider can hold the right data and still answer a missing key wrongly.
 
+**R29.** In the boolean shape only the JSON boolean `true` is on. An entry
+whose value is anything else — the string `"true"`, the string `"false"`,
+`1`, `null` — MUST be dropped when the data is loaded, and the key then
+evaluates to `false` like any missing key.
+
+This is R4 for the boolean shape: no coercion. A port that returns the stored
+value and lets the caller test its truthiness turns `"false"` on, because a
+non-empty string is truthy in JavaScript, Python and more. Dropping at load,
+rather than only answering `false`, keeps the stored data identical across
+ports, so the mapping cases can compare it.
+
 ## 6. Backend response mapping
 
 Only relevant for a port with an API provider.

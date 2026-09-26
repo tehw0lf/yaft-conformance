@@ -102,7 +102,7 @@ prevent.
 For the same reason the adapter must check each file's format `version` and
 reject one it does not know. A new field is invisible to an adapter that never
 reads it; the format version is what makes it visible. Current formats:
-`evaluation` 1, `decorator` 1, `mapping` 2 (since 1.2.0: boolean-shape cases
+`evaluation` 1, `decorator` 1, `mapping` 2 (since 2.0.0: boolean-shape cases
 carry an `isEnabled` map of keys to ask and the answer each must give).
 
 ## Changing the suite
@@ -112,7 +112,9 @@ carry an `isEnabled` map of keys to ask and the answer each must give).
 - A case that changes an expectation is a breaking change: bump the major in
   `VERSION`, because ports pin it and will need work.
 - Adding cases that only pin down existing rules is a minor bump. So is a new
-  rule that writes down what the reference already does — R27 and R28 in 1.2.0.
+  rule that writes down what the reference already does, like R27 and R28.
+- A new rule that an existing port fails is a major bump, like any other
+  change that leaves ports with work to do: R29 made 2.0.0.
 - A new or changed field in a case bumps that file's format `version`.
 - Every case carries the rules it covers, and a `why` wherever the expectation
   is not self-evident.
