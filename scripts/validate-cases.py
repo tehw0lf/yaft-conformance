@@ -24,6 +24,7 @@ UNTESTED = {
     "R9": "structural -- a port without an injectable clock cannot run the suite at all",
     "R20": "structural -- asserted by the evaluation suite running through the provider",
     "R26": "backend timing; covered by the Go backend's integration tests, not by data",
+    "R31": "a backend obligation; covered by the Go backend's integration tests, not by data",
 }
 
 

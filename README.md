@@ -102,8 +102,19 @@ prevent.
 For the same reason the adapter must check each file's format `version` and
 reject one it does not know. A new field is invisible to an adapter that never
 reads it; the format version is what makes it visible. Current formats:
-`evaluation` 1, `decorator` 1, `mapping` 2 (since 2.0.0: boolean-shape cases
-carry an `isEnabled` map of keys to ask and the answer each must give).
+`evaluation` 1, `decorator` 1, `mapping` 3 (since 2.0.0: boolean-shape cases
+carry an `isEnabled` map of keys to ask and the answer each must give; since
+3.0.0: feature-shape cases may carry `held`, the data the provider holds before
+`response` arrives, and `retry`, a further response under the same hash).
+
+A case with `held` tests a refresh, not a pure mapping (R30), so it has to run
+through the port's real API provider: serve `held` as a group from a stub
+backend and refresh, then serve `response` under a new collection hash and
+refresh again, and compare the provider's data with `expected`. The second
+refresh fails for a body that is not a group; the adapter expects that failure
+and still compares, because keeping `held` is the point. If the case carries
+`retry`, serve `retry.response` under the *same* hash, refresh once more and
+compare with `retry.expected`: a rejected body must not record the hash.
 
 ## Changing the suite
 
@@ -114,7 +125,8 @@ carry an `isEnabled` map of keys to ask and the answer each must give).
 - Adding cases that only pin down existing rules is a minor bump. So is a new
   rule that writes down what the reference already does, like R27 and R28.
 - A new rule that an existing port fails is a major bump, like any other
-  change that leaves ports with work to do: R29 made 2.0.0.
+  change that leaves ports with work to do: R29 made 2.0.0, R30 and the
+  `held` field made 3.0.0.
 - A new or changed field in a case bumps that file's format `version`.
 - Every case carries the rules it covers, and a `why` wherever the expectation
   is not self-evident.

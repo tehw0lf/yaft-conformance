@@ -253,16 +253,53 @@
                 "description": "Which provider shape consumes this response."
               },
               "response": {
-                "description": "The raw payload as the backend or a local fixture delivers it.",
+                "description": "The raw payload as the backend or a local fixture delivers it. Any JSON value: a body that is not a group (null, an array, a string) is exactly what several R30 cases test.",
                 "type": [
                   "object",
-                  "array"
+                  "array",
+                  "null",
+                  "string",
+                  "number",
+                  "boolean"
                 ]
+              },
+              "held": {
+                "type": "object",
+                "description": "Feature shape only: the data the provider holds before this response arrives, as normalised feature records keyed by feature key. When present, the adapter loads it through the port's own refresh, then delivers response as the next refresh, and asserts expected -- which for a body that is not a group is held unchanged (R30). When absent, response is simply normalised.",
+                "additionalProperties": {
+                  "$ref": "#/$defs/feature"
+                }
               },
               "expected": {
                 "type": "object",
                 "description": "The normalised data the provider must hold afterwards, keyed by feature key. For the boolean shape the values are booleans; for the feature shape they are normalised feature records with null/empty dates written as \"\".",
                 "additionalProperties": true
+              },
+              "retry": {
+                "type": "object",
+                "required": [
+                  "response",
+                  "expected"
+                ],
+                "additionalProperties": false,
+                "description": "Refresh cases only: a further response the stub backend serves after response, under the same collection hash, and the data the provider must hold after refreshing once more. Checks that a rejected refresh does not record the hash, which would block every later refresh until the backend changed again (R30).",
+                "properties": {
+                  "response": {
+                    "description": "As response.",
+                    "type": [
+                      "object",
+                      "array",
+                      "null",
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  },
+                  "expected": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
               },
               "isEnabled": {
                 "type": "object",
@@ -292,6 +329,34 @@
                       "isEnabled"
                     ]
                   }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "shape": {
+                      "const": "boolean"
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "held"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "required": [
+                    "retry"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "held"
+                  ]
                 }
               }
             ]
