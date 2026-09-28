@@ -275,6 +275,32 @@
                 "description": "The normalised data the provider must hold afterwards, keyed by feature key. For the boolean shape the values are booleans; for the feature shape they are normalised feature records with null/empty dates written as \"\".",
                 "additionalProperties": true
               },
+              "retry": {
+                "type": "object",
+                "required": [
+                  "response",
+                  "expected"
+                ],
+                "additionalProperties": false,
+                "description": "Refresh cases only: a further response the stub backend serves after response, under the same collection hash, and the data the provider must hold after refreshing once more. Checks that a rejected refresh does not record the hash, which would block every later refresh until the backend changed again (R30).",
+                "properties": {
+                  "response": {
+                    "description": "As response.",
+                    "type": [
+                      "object",
+                      "array",
+                      "null",
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  },
+                  "expected": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              },
               "isEnabled": {
                 "type": "object",
                 "additionalProperties": {
@@ -319,6 +345,18 @@
                       "held"
                     ]
                   }
+                }
+              },
+              {
+                "if": {
+                  "required": [
+                    "retry"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "held"
+                  ]
                 }
               }
             ]

@@ -544,7 +544,7 @@
       "rules": [
         "R30"
       ],
-      "why": "null normalises to nothing. Storing that would switch every feature off without an error.",
+      "why": "null normalises to nothing. Storing that would switch every feature off without an error. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -582,6 +582,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
@@ -589,7 +595,7 @@
       "rules": [
         "R30"
       ],
-      "why": "A bare array is no envelope, however empty it is. Only {\"toggles\": []} is an empty group.",
+      "why": "A bare array is no envelope, however empty it is. Only {\"toggles\": []} is an empty group. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -627,6 +633,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
@@ -634,7 +646,7 @@
       "rules": [
         "R30"
       ],
-      "why": "A proxy answering with text that still parses as JSON.",
+      "why": "A proxy answering with text that still parses as JSON. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -672,6 +684,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
@@ -679,7 +697,7 @@
       "rules": [
         "R30"
       ],
-      "why": "A proxy's error object: no envelope and no key.",
+      "why": "A proxy's error object: no envelope and no key. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -719,6 +737,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
@@ -726,7 +750,7 @@
       "rules": [
         "R30"
       ],
-      "why": "A collection none of whose entries is usable is not an empty group: that is what a broken serialiser looks like, not a deleted toggle.",
+      "why": "A collection none of whose entries is usable is not an empty group: that is what a broken serialiser looks like, not a deleted toggle. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -768,6 +792,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
@@ -775,7 +805,7 @@
       "rules": [
         "R30"
       ],
-      "why": "The same with entries that are objects but carry no key (R25).",
+      "why": "The same with entries that are objects but carry no key (R25). The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
       "held": {
         "uuid|a": {
@@ -820,6 +850,12 @@
             "beta"
           ]
         }
+      },
+      "retry": {
+        "response": {
+          "toggles": []
+        },
+        "expected": {}
       }
     },
     {
