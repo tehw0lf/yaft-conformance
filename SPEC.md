@@ -233,6 +233,27 @@ value, which turns an off feature on.
 **R25.** An entry without a usable key MUST be skipped rather than stored under
 an empty key.
 
+**R30.** A refresh of a port that fetches from the backend either succeeds as a
+whole or fails as a whole:
+
+- A body that is a group -- a collection envelope (R22), **even an empty one**,
+  or a single toggle -- MUST replace the held data completely. Nothing is
+  merged: a toggle absent from the new group is gone and evaluates to `false`.
+  An empty group therefore switches every toggle of the group off; that is
+  what deleting a group's last toggle looks like.
+- A body that is not a group MUST fail the refresh and leave the held data
+  exactly as it was: `null`, an array, any other non-object, an object with no
+  collection envelope and no key (a proxy's error page, `{"error": ...}`), or a
+  collection none of whose entries is usable (`{"toggles": [null]}`). Unusable
+  entries next to usable ones are still just skipped (R25).
+
+Both halves guard against the same silent failure in opposite directions.
+Treating a garbage body as a group normalises it to nothing and switches every
+feature off without an error; treating an empty group as a failure keeps a
+deleted toggle on forever. A port that remembers the collection hash MUST
+record it only after the group was applied, or a failed refresh is never
+retried.
+
 ## 7. Backend agreement
 
 **R26.** The backend flips scheduled toggles with a cron job that ticks about
@@ -240,6 +261,16 @@ once a minute, comparing against `now()`. A library that evaluates locally is
 therefore up to a tick *ahead* of the backend's stored `value`. This is
 intended: a port MUST evaluate the bounds itself and MUST NOT wait for the
 backend's `value` to change.
+
+**R31.** The backend MUST answer a group that exists but holds no toggles like
+any other group: `GET /features/:uuid` with `200` and `{"toggles": []}`, and
+`GET /collectionHash/:uuid` with `200` and the SHA-256 of the empty string
+(`e3b0c442…b855`). Only the canonical, lowercase UUID names a group; a missing
+single toggle and any other spelling of the UUID stay `404`.
+
+Before backend 0.3.8 the empty group answered `404`. A port rightly reads that
+as an outage and keeps its data (R30), so a group's deleted last toggle stayed
+on in every client.
 
 ## Withdrawn rules
 
