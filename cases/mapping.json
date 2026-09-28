@@ -1,6 +1,6 @@
 {
   "suite": "mapping",
-  "version": 3,
+  "version": 4,
   "cases": [
     {
       "name": "toggles-lowercase",
@@ -350,7 +350,8 @@
       "name": "empty-group-replaces-held",
       "rules": [
         "R30",
-        "R22"
+        "R22",
+        "R32"
       ],
       "why": "What the backend answers once a group's last toggle is deleted (R31). It is a group, so it replaces the held data and every toggle is off. A port that treats it as a failure keeps the deleted toggle on forever.",
       "shape": "feature",
@@ -372,6 +373,7 @@
           ]
         }
       },
+      "rejected": false,
       "response": {
         "toggles": []
       },
@@ -381,7 +383,8 @@
       "name": "empty-value-collection-replaces-held",
       "rules": [
         "R30",
-        "R22"
+        "R22",
+        "R32"
       ],
       "why": "The same under the value envelope, which R22 treats identically.",
       "shape": "feature",
@@ -403,6 +406,7 @@
           ]
         }
       },
+      "rejected": false,
       "response": {
         "value": []
       },
@@ -411,7 +415,8 @@
     {
       "name": "group-replaces-held-without-merging",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "uuid|a was deleted in the backend. Merging the new group into the held data would keep it on.",
       "shape": "feature",
@@ -433,6 +438,7 @@
           ]
         }
       },
+      "rejected": false,
       "response": {
         "toggles": [
           {
@@ -458,7 +464,8 @@
       "name": "single-toggle-replaces-held",
       "rules": [
         "R30",
-        "R22"
+        "R22",
+        "R32"
       ],
       "why": "A single toggle is a group of one; it replaces the held data like a collection does.",
       "shape": "feature",
@@ -480,6 +487,7 @@
           ]
         }
       },
+      "rejected": false,
       "response": {
         "key": "uuid|b",
         "value": "true"
@@ -498,7 +506,8 @@
       "name": "skipped-entry-still-replaces-held",
       "rules": [
         "R30",
-        "R25"
+        "R25",
+        "R32"
       ],
       "why": "One unusable entry next to a usable one is skipped (R25); the body is still a group and replaces the held data.",
       "shape": "feature",
@@ -520,6 +529,7 @@
           ]
         }
       },
+      "rejected": false,
       "response": {
         "toggles": [
           null,
@@ -542,7 +552,8 @@
     {
       "name": "null-body-keeps-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "null normalises to nothing. Storing that would switch every feature off without an error. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -564,6 +575,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": null,
       "expected": {
         "uuid|a": {
@@ -593,7 +605,8 @@
     {
       "name": "array-body-keeps-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "A bare array is no envelope, however empty it is. Only {\"toggles\": []} is an empty group. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -615,6 +628,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": [],
       "expected": {
         "uuid|a": {
@@ -644,7 +658,8 @@
     {
       "name": "string-body-keeps-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "A proxy answering with text that still parses as JSON. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -666,6 +681,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": "Bad Gateway",
       "expected": {
         "uuid|a": {
@@ -695,7 +711,8 @@
     {
       "name": "error-object-keeps-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "A proxy's error object: no envelope and no key. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -717,6 +734,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": {
         "error": "Bad Gateway"
       },
@@ -748,7 +766,8 @@
     {
       "name": "all-entries-unusable-keeps-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "A collection none of whose entries is usable is not an empty group: that is what a broken serialiser looks like, not a deleted toggle. The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -770,6 +789,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": {
         "toggles": [
           null
@@ -803,7 +823,8 @@
     {
       "name": "keyless-entries-keep-held",
       "rules": [
-        "R30"
+        "R30",
+        "R32"
       ],
       "why": "The same with entries that are objects but carry no key (R25). The retry under the same hash must then load: a port that recorded the hash on the rejected body would never refresh again.",
       "shape": "feature",
@@ -825,6 +846,7 @@
           ]
         }
       },
+      "rejected": true,
       "response": {
         "toggles": [
           {},

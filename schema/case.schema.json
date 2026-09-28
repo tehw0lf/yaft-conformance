@@ -270,6 +270,10 @@
                   "$ref": "#/$defs/feature"
                 }
               },
+              "rejected": {
+                "type": "boolean",
+                "description": "Refresh cases only: whether the port must reject response (R30). An adapter whose port reports the refresh outcome asserts it: a failure when true, a success when false (R32). The retry, if any, must always succeed."
+              },
               "expected": {
                 "type": "object",
                 "description": "The normalised data the provider must hold afterwards, keyed by feature key. For the boolean shape the values are booleans; for the feature shape they are normalised feature records with null/empty dates written as \"\".",
@@ -351,6 +355,30 @@
                 "if": {
                   "required": [
                     "retry"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "held"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "required": [
+                    "held"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "rejected"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "required": [
+                    "rejected"
                   ]
                 },
                 "then": {

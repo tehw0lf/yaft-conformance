@@ -254,6 +254,18 @@ deleted toggle on forever. A port that remembers the collection hash MUST
 record it only after the group was applied, or a failed refresh is never
 retried.
 
+**R32.** A port's refresh SHOULD report its outcome to a caller that asks for
+it: a response rejected under R30 surfaces as a failure -- an error, an
+exception, a `false` -- and an applied group as a success. A log line alone is
+not a report. A port MAY offer a quiet variant for schedulers that logs
+instead, as long as a reporting one exists.
+
+R30 already fixes what happens to the data; R32 is about being able to tell.
+A port that silently drops a proxy's error page keeps the right data and
+passes R30, but whoever runs it cannot see that every refresh is failing. The
+refresh cases say which responses must be rejected (`rejected`), so an adapter
+can check the report instead of guessing it from the data.
+
 ## 7. Backend agreement
 
 **R26.** The backend flips scheduled toggles with a cron job that ticks about
