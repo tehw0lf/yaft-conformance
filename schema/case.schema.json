@@ -48,7 +48,7 @@
           "type": "string"
         },
         "value": {
-          "type": "string"
+          "description": "A string, except in cases that check a value of another JSON type is not set (R33)."
         },
         "activeAt": {
           "type": [
