@@ -134,7 +134,7 @@ a SHOULD; the data assertions still run for every port.
   rule that writes down what the reference already does, like R27 and R28.
 - A new rule that an existing port fails is a major bump, like any other
   change that leaves ports with work to do: R29 made 2.0.0, R30 and the
-  `held` field made 3.0.0, the `rejected` field 4.0.0.
+  `held` field made 3.0.0, the `rejected` field 4.0.0, R33 5.0.0.
 - A new or changed field in a case bumps that file's format `version`.
 - Every case carries the rules it covers, and a `why` wherever the expectation
   is not self-evident.

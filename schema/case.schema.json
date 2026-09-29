@@ -48,7 +48,7 @@
           "type": "string"
         },
         "value": {
-          "type": "string"
+          "description": "A string. Only an evaluation case that tests R33 may hold another JSON type here; held records are normalised and always carry a string."
         },
         "activeAt": {
           "type": [
@@ -123,7 +123,33 @@
               "expected": {
                 "type": "boolean"
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "rules": {
+                      "contains": {
+                        "const": "R33"
+                      }
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "features": {
+                      "additionalProperties": {
+                        "properties": {
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }
@@ -267,7 +293,18 @@
                 "type": "object",
                 "description": "Feature shape only: the data the provider holds before this response arrives, as normalised feature records keyed by feature key. When present, the adapter loads it through the port's own refresh, then delivers response as the next refresh, and asserts expected -- which for a body that is not a group is held unchanged (R30). When absent, response is simply normalised.",
                 "additionalProperties": {
-                  "$ref": "#/$defs/feature"
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/feature"
+                    },
+                    {
+                      "properties": {
+                        "value": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "rejected": {

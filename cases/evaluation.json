@@ -94,6 +94,15 @@
       "expected": false
     },
     {
+      "name": "value-boolean-true",
+      "rules": ["R33", "R4"],
+      "why": "A JSON boolean is not the string \"true\". Coercing it -- String(true), fmt.Sprint(true), toString() -- turns it on in one port and leaves it off in the next.",
+      "now": "2026-09-18T12:00:00Z",
+      "features": { "f": { "key": "f", "value": true, "activeAt": "", "disabledAt": "" } },
+      "key": "f",
+      "expected": false
+    },
+    {
       "name": "active-at-future",
       "rules": ["R5"],
       "now": "2026-09-18T12:00:00Z",

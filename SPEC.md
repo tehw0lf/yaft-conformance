@@ -233,6 +233,20 @@ value, which turns an off feature on.
 **R25.** An entry without a usable key MUST be skipped rather than stored under
 an empty key.
 
+**R33.** In the feature shape, `key` and `value` are strings. A field that
+holds anything else -- a boolean, a number, an object -- MUST be treated as not
+set, never converted: a `value` that is no string evaluates to `false` (R4),
+and an entry whose `key` is no string has no usable key (R25). This applies
+after R23 has chosen the field by presence, so a non-string lowercase `value`
+does not fall through to the capitalised one.
+
+JSON booleans belong in the boolean shape (R21). Converting them in the feature
+shape relies on each language's own idea of text: JavaScript's `String(true)`
+and Go's `fmt.Sprint(true)` give `"true"`, Python's `str(True)` gives `"True"`,
+and a number key becomes `"7"` or `"7.0"` depending on the JSON library. The
+backend only ever sends strings; this rule keeps anything else from meaning
+something different in every port.
+
 **R30.** A refresh of a port that fetches from the backend either succeeds as a
 whole or fails as a whole:
 

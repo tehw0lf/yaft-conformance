@@ -336,6 +336,122 @@
       }
     },
     {
+      "name": "value-boolean-not-coerced",
+      "rules": [
+        "R33"
+      ],
+      "why": "The boolean shape is where JSON booleans belong. In the feature shape value is a string, so true is not set and the feature is off, not \"true\".",
+      "shape": "feature",
+      "response": {
+        "toggles": [
+          {
+            "key": "uuid|a",
+            "value": true,
+            "activeAt": null,
+            "disabledAt": null
+          }
+        ]
+      },
+      "expected": {
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "value-number-not-coerced",
+      "rules": [
+        "R33"
+      ],
+      "shape": "feature",
+      "response": {
+        "toggles": [
+          {
+            "key": "uuid|a",
+            "value": 1,
+            "activeAt": null,
+            "disabledAt": null
+          }
+        ]
+      },
+      "expected": {
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "non-string-value-does-not-fall-through",
+      "rules": [
+        "R33",
+        "R23"
+      ],
+      "why": "The lowercase value is present, so it wins (R23) -- and being no string, it is not set. Falling through to the capitalised \"true\" would turn the feature on.",
+      "shape": "feature",
+      "response": {
+        "toggles": [
+          {
+            "key": "uuid|a",
+            "value": true,
+            "Value": "true",
+            "activeAt": null,
+            "disabledAt": null
+          }
+        ]
+      },
+      "expected": {
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "key-not-a-string-skipped",
+      "rules": [
+        "R33",
+        "R25"
+      ],
+      "why": "A number is no key. Written out, it would be \"7\" in one port and \"7.0\" in another, depending on the JSON library.",
+      "shape": "feature",
+      "response": {
+        "toggles": [
+          {
+            "key": 7,
+            "value": "true",
+            "activeAt": null,
+            "disabledAt": null
+          },
+          {
+            "key": "uuid|a",
+            "value": "true",
+            "activeAt": null,
+            "disabledAt": null
+          }
+        ]
+      },
+      "expected": {
+        "uuid|a": {
+          "key": "uuid|a",
+          "value": "true",
+          "activeAt": "",
+          "disabledAt": "",
+          "tags": []
+        }
+      }
+    },
+    {
       "name": "empty-collection",
       "rules": [
         "R22"
